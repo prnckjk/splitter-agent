@@ -1,0 +1,304 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>Sin titulo.md</title><style></style></head><body id="preview">
+<h1 class="code-line" data-line-start=0 data-line-end=1 ><a id="Proyecto_SplitterAgent_Anlisis_y_Segmentacin_de_Consultas_de_Usuarios_0"></a>Proyecto SplitterAgent: Análisis y Segmentación de Consultas de Usuarios</h1>
+<h2 class="code-line" data-line-start=2 data-line-end=3 ><a id="ndice_2"></a>Índice</h2>
+<ol>
+<li class="has-line-data" data-line-start="3" data-line-end="4"><a href="#contexto-y-objetivo">Contexto y Objetivo</a></li>
+<li class="has-line-data" data-line-start="4" data-line-end="5"><a href="#an%C3%A1lisis-de-datos">Análisis de Datos</a></li>
+<li class="has-line-data" data-line-start="5" data-line-end="6"><a href="#dise%C3%B1o-del-sistema">Diseño del Sistema</a></li>
+<li class="has-line-data" data-line-start="6" data-line-end="9"><a href="#implementaci%C3%B3n">Implementación</a>
+<ul>
+<li class="has-line-data" data-line-start="7" data-line-end="8"><a href="#splitteragent">SplitterAgent</a></li>
+<li class="has-line-data" data-line-start="8" data-line-end="9"><a href="#evaluatoragent">EvaluatorAgent</a></li>
+</ul>
+</li>
+<li class="has-line-data" data-line-start="9" data-line-end="10"><a href="#evaluaci%C3%B3n">Evaluación</a></li>
+<li class="has-line-data" data-line-start="10" data-line-end="11"><a href="#escalabilidad-y-mejoras">Escalabilidad y Mejoras</a></li>
+<li class="has-line-data" data-line-start="11" data-line-end="13"><a href="#instrucciones-de-ejecuci%C3%B3n">Instrucciones de Ejecución</a></li>
+</ol>
+<h2 class="code-line" data-line-start=13 data-line-end=14 ><a id="Contexto_y_Objetivo_13"></a>Contexto y Objetivo</h2>
+<p class="has-line-data" data-line-start="15" data-line-end="16">En TaxDown, utilizamos modelos de lenguaje avanzados (LLMs) para procesar y responder a las consultas de nuestros usuarios. Un paso crucial en nuestro pipeline de generación de respuestas es el “splitter”, un componente que se encarga de analizar los mensajes de los usuarios (que pueden llegar por chat o email) y extraer las distintas preguntas o temas que plantean para poder contestarlos por separado.</p>
+<p class="has-line-data" data-line-start="17" data-line-end="18">El objetivo principal es diseñar e implementar un sistema de “splitter” que pueda:</p>
+<ul>
+<li class="has-line-data" data-line-start="18" data-line-end="19">Identificar y extraer múltiples preguntas o temas de un solo mensaje de usuario.</li>
+<li class="has-line-data" data-line-start="19" data-line-end="20">Mantener juntas las frases relacionadas con cada pregunta, incluyendo el contexto adicional o la elaboración proporcionada por el usuario.</li>
+<li class="has-line-data" data-line-start="20" data-line-end="22">Manejar eficazmente tanto mensajes de chat como emails, que pueden tener estructuras y longitudes diferentes.</li>
+</ul>
+<h2 class="code-line" data-line-start=22 data-line-end=23 ><a id="Anlisis_de_Datos_22"></a>Análisis de Datos</h2>
+<p class="has-line-data" data-line-start="24" data-line-end="25">Tras examinar el dataset proporcionado, se identificaron los siguientes patrones comunes:</p>
+<ol>
+<li class="has-line-data" data-line-start="26" data-line-end="27">Los usuarios tienden a formular múltiples preguntas en un solo mensaje.</li>
+<li class="has-line-data" data-line-start="27" data-line-end="28">A menudo, se proporciona contexto adicional o se elabora sobre una pregunta después de haberla planteado.</li>
+<li class="has-line-data" data-line-start="28" data-line-end="29">Los mensajes varían significativamente en longitud y estructura, especialmente entre chats y emails.</li>
+<li class="has-line-data" data-line-start="29" data-line-end="31">Muchos mensajes contienen información personal o financiera específica que requiere un manejo cuidadoso.</li>
+</ol>
+<h2 class="code-line" data-line-start=31 data-line-end=32 ><a id="Diseo_del_Sistema_31"></a>Diseño del Sistema</h2>
+<p class="has-line-data" data-line-start="33" data-line-end="34">Para abordar este desafío, se ha optado por utilizar un enfoque basado en un modelo de lenguaje grande (LLM) con fine-tuning específico para la tarea de segmentación. Este enfoque se considera el más adecuado por las siguientes razones:</p>
+<ol>
+<li class="has-line-data" data-line-start="35" data-line-end="36"><strong>Flexibilidad</strong>: Los LLMs pueden adaptarse a una amplia variedad de estructuras de mensajes y estilos de escritura.</li>
+<li class="has-line-data" data-line-start="36" data-line-end="37"><strong>Comprensión contextual</strong>: Pueden entender y mantener el contexto a lo largo de mensajes largos.</li>
+<li class="has-line-data" data-line-start="37" data-line-end="39"><strong>Capacidad de generalización</strong>: Pueden manejar casos nuevos o inusuales que no se hayan visto en los datos de entrenamiento.</li>
+</ol>
+<h3 class="code-line" data-line-start=39 data-line-end=40 ><a id="Comparacin_de_Tcnicas_39"></a>Comparación de Técnicas</h3>
+<table class="table table-striped table-bordered">
+<thead>
+<tr>
+<th>Factor</th>
+<th>LLM con Fine-tuning</th>
+<th>Enfoque basado en reglas</th>
+<th>Modelo de clasificación tradicional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Coste computacional y financiero</td>
+<td>Alto</td>
+<td>Bajo</td>
+<td>Medio</td>
+</tr>
+<tr>
+<td>Latencia</td>
+<td>Media</td>
+<td>Baja</td>
+<td>Baja</td>
+</tr>
+<tr>
+<td>Calidad de los resultados</td>
+<td>Alta</td>
+<td>Media</td>
+<td>Media</td>
+</tr>
+<tr>
+<td>Escalabilidad</td>
+<td>Alta</td>
+<td>Baja</td>
+<td>Media</td>
+</tr>
+<tr>
+<td>Mantenibilidad</td>
+<td>Media</td>
+<td>Baja</td>
+<td>Media</td>
+</tr>
+<tr>
+<td>Flexibilidad</td>
+<td>Alta</td>
+<td>Baja</td>
+<td>Media</td>
+</tr>
+<tr>
+<td>Requisitos de datos de entrenamiento</td>
+<td>Altos</td>
+<td>Bajos</td>
+<td>Medios</td>
+</tr>
+<tr>
+<td>Interpretabilidad del modelo</td>
+<td>Baja</td>
+<td>Alta</td>
+<td>Media</td>
+</tr>
+</tbody>
+</table>
+<h2 class="code-line" data-line-start=52 data-line-end=53 ><a id="Implementacin_52"></a>Implementación</h2>
+<p class="has-line-data" data-line-start="54" data-line-end="55">La implementación se ha realizado utilizando el framework LlamaIndex y la API de OpenAI. El sistema consta de dos componentes principales: el SplitterAgent y el EvaluatorAgent.</p>
+<h3 class="code-line" data-line-start=56 data-line-end=57 ><a id="SplitterAgent_56"></a>SplitterAgent</h3>
+<p class="has-line-data" data-line-start="58" data-line-end="59">El SplitterAgent es responsable de procesar los mensajes de los usuarios y dividirlos en preguntas o temas distintos.</p>
+<h4 class="code-line" data-line-start=60 data-line-end=61 ><a id="Proceso_de_divisin_del_mensaje_original_60"></a>Proceso de división del mensaje original:</h4>
+<ol>
+<li class="has-line-data" data-line-start="62" data-line-end="64">
+<p class="has-line-data" data-line-start="62" data-line-end="63"><strong>Análisis del mensaje</strong>: El agente analiza el mensaje completo para identificar su estructura y contenido.</p>
+</li>
+<li class="has-line-data" data-line-start="64" data-line-end="66">
+<p class="has-line-data" data-line-start="64" data-line-end="65"><strong>Identificación del tipo de mensaje</strong>: Se determina si el mensaje es una consulta, una comunicación ordinaria, un agradecimiento, etc.</p>
+</li>
+<li class="has-line-data" data-line-start="66" data-line-end="68">
+<p class="has-line-data" data-line-start="66" data-line-end="67"><strong>Extracción de categorías</strong>: El agente identifica las diferentes categorías o temas presentes en el mensaje. Estas pueden ser áreas como “Declaración de impuestos”, “Deducciones”, “Plazos”, etc.</p>
+</li>
+<li class="has-line-data" data-line-start="68" data-line-end="70">
+<p class="has-line-data" data-line-start="68" data-line-end="69"><strong>Segmentación del contenido</strong>: Para cada categoría identificada, el agente extrae las partes relevantes del mensaje original, incluyendo preguntas específicas, contexto relacionado y cualquier información adicional proporcionada por el usuario.</p>
+</li>
+<li class="has-line-data" data-line-start="70" data-line-end="75">
+<p class="has-line-data" data-line-start="70" data-line-end="71"><strong>Estructuración de la salida</strong>: El resultado se estructura en un formato JSON que incluye:</p>
+<ul>
+<li class="has-line-data" data-line-start="71" data-line-end="72">El mensaje original completo</li>
+<li class="has-line-data" data-line-start="72" data-line-end="73">El tipo de mensaje identificado</li>
+<li class="has-line-data" data-line-start="73" data-line-end="75">Una lista de categorías, cada una con su propio contenido extraído</li>
+</ul>
+</li>
+</ol>
+<p class="has-line-data" data-line-start="75" data-line-end="76">Ejemplo de salida del SplitterAgent:</p>
+<pre><code class="has-line-data" data-line-start="78" data-line-end="93" class="language-json">{
+  "<span class="hljs-attribute">original_message</span>": <span class="hljs-value"><span class="hljs-string">"Hola, tengo dos preguntas. Primero, ¿cuándo es la fecha límite para presentar la declaración? Segundo, ¿puedo deducir los gastos de mi oficina en casa?"</span></span>,
+  "<span class="hljs-attribute">message_type</span>": <span class="hljs-value"><span class="hljs-string">"consulta"</span></span>,
+  "<span class="hljs-attribute">categories</span>": <span class="hljs-value">[
+    {
+      "<span class="hljs-attribute">keyword</span>": <span class="hljs-value"><span class="hljs-string">"Plazos"</span></span>,
+      "<span class="hljs-attribute">content</span>": <span class="hljs-value">[<span class="hljs-string">"¿Cuándo es la fecha límite para presentar la declaración?"</span>]
+    </span>},
+    {
+      "<span class="hljs-attribute">keyword</span>": <span class="hljs-value"><span class="hljs-string">"Deducciones"</span></span>,
+      "<span class="hljs-attribute">content</span>": <span class="hljs-value">[<span class="hljs-string">"¿Puedo deducir los gastos de mi oficina en casa?"</span>]
+    </span>}
+  ]
+</span>}
+</code></pre>
+<p class="has-line-data" data-line-start="94" data-line-end="95">Implementación del SplitterAgent:</p>
+<pre><code class="has-line-data" data-line-start="97" data-line-end="121" class="language-python"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SplitterAgent</span>:</span>
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">__init__</span><span class="hljs-params">(self, llm: OpenAI = OpenAI<span class="hljs-params">(temperature=<span class="hljs-number">0</span>, model=<span class="hljs-string">"gpt-4o-mini"</span>)</span>)</span>:</span>
+        self._llm = llm
+        self._instructions = self._load_instructions()
+
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">_process_message</span><span class="hljs-params">(self, message: str)</span> -&gt; <span class="hljs-title">dict</span>:</span>
+        self._chat_history.append(ChatMessage(role=<span class="hljs-string">"user"</span>, content=message))
+        
+        system_message = ChatMessage(role=<span class="hljs-string">"system"</span>, content=self._instructions)
+        messages = [system_message] + self._chat_history
+
+        <span class="hljs-keyword">try</span>:
+            ai_message = self._llm.chat(messages).message
+            result = json.loads(ai_message.content)
+            result[<span class="hljs-string">'original_message'</span>] = message
+            <span class="hljs-keyword">return</span> result
+        <span class="hljs-keyword">except</span> json.JSONDecodeError <span class="hljs-keyword">as</span> e:
+            print(f<span class="hljs-string">"Error de decodificación JSON: {e}"</span>)
+            <span class="hljs-keyword">return</span> {
+                <span class="hljs-string">"error"</span>: <span class="hljs-string">"Respuesta JSON inválida"</span>,
+                <span class="hljs-string">"raw_content"</span>: ai_message.content,
+                <span class="hljs-string">"original_message"</span>: message
+            }
+</code></pre>
+<h3 class="code-line" data-line-start=122 data-line-end=123 ><a id="EvaluatorAgent_122"></a>EvaluatorAgent</h3>
+<p class="has-line-data" data-line-start="124" data-line-end="125">El EvaluatorAgent se encarga de evaluar la calidad de las divisiones realizadas por el SplitterAgent.</p>
+<h4 class="code-line" data-line-start=126 data-line-end=127 ><a id="Proceso_de_evaluacin_de_las_extracciones_126"></a>Proceso de evaluación de las extracciones:</h4>
+<ol>
+<li class="has-line-data" data-line-start="128" data-line-end="130">
+<p class="has-line-data" data-line-start="128" data-line-end="129"><strong>Análisis holístico</strong>: El EvaluatorAgent examina todas las extracciones en conjunto, considerando el mensaje original completo y todas las categorías y contenidos extraídos.</p>
+</li>
+<li class="has-line-data" data-line-start="130" data-line-end="136">
+<p class="has-line-data" data-line-start="130" data-line-end="131"><strong>Evaluación de criterios múltiples</strong>: Para cada conjunto de extracciones, el agente evalúa:</p>
+<ul>
+<li class="has-line-data" data-line-start="131" data-line-end="132">Precisión del tipo de mensaje: ¿Se ha identificado correctamente si es una consulta, comunicación, etc.?</li>
+<li class="has-line-data" data-line-start="132" data-line-end="133">Relevancia de las categorías: ¿Las categorías identificadas son apropiadas para el contenido del mensaje?</li>
+<li class="has-line-data" data-line-start="133" data-line-end="134">Exhaustividad del contenido: ¿Se han capturado todos los temas y preguntas importantes del mensaje original?</li>
+<li class="has-line-data" data-line-start="134" data-line-end="136">Calidad de la extracción: ¿El contenido extraído refleja con precisión la intención y el contexto del mensaje original?</li>
+</ul>
+</li>
+<li class="has-line-data" data-line-start="136" data-line-end="138">
+<p class="has-line-data" data-line-start="136" data-line-end="137"><strong>Puntuación</strong>: Cada criterio se puntúa en una escala del 1 al 5, donde 5 es la mejor puntuación.</p>
+</li>
+<li class="has-line-data" data-line-start="138" data-line-end="140">
+<p class="has-line-data" data-line-start="138" data-line-end="139"><strong>Comentario cualitativo</strong>: Además de las puntuaciones numéricas, el evaluador proporciona un comentario detallado explicando sus evaluaciones y sugiriendo posibles mejoras.</p>
+</li>
+<li class="has-line-data" data-line-start="140" data-line-end="142">
+<p class="has-line-data" data-line-start="140" data-line-end="141"><strong>Cálculo de puntuación media</strong>: Se calcula una puntuación media basada en los criterios individuales para dar una evaluación general de la calidad de la división.</p>
+</li>
+</ol>
+<p class="has-line-data" data-line-start="142" data-line-end="143">Ejemplo de salida del EvaluatorAgent:</p>
+<pre><code class="has-line-data" data-line-start="145" data-line-end="155" class="language-json">{
+  "<span class="hljs-attribute">precisión_del_tipo_de_mensaje</span>": <span class="hljs-value"><span class="hljs-number">5.0</span></span>,
+  "<span class="hljs-attribute">relevancia_de_la_categoría</span>": <span class="hljs-value"><span class="hljs-number">4.5</span></span>,
+  "<span class="hljs-attribute">exhaustividad_del_contenido</span>": <span class="hljs-value"><span class="hljs-number">4.0</span></span>,
+  "<span class="hljs-attribute">calidad_de_la_extracción</span>": <span class="hljs-value"><span class="hljs-number">4.5</span></span>,
+  "<span class="hljs-attribute">comentario</span>": <span class="hljs-value"><span class="hljs-string">"La división del mensaje es generalmente buena. El tipo de mensaje se identificó correctamente como una consulta. Las categorías 'Plazos' y 'Deducciones' son relevantes y capturan los temas principales. Sin embargo, se podría mejorar la exhaustividad incluyendo más contexto sobre la situación de trabajo desde casa en la categoría de deducciones."</span></span>,
+  "<span class="hljs-attribute">puntuación_media</span>": <span class="hljs-value"><span class="hljs-number">4.5</span></span>,
+  "<span class="hljs-attribute">mensaje_original</span>": <span class="hljs-value"><span class="hljs-string">"Hola, tengo dos preguntas. Primero, ¿cuándo es la fecha límite para presentar la declaración? Segundo, ¿puedo deducir los gastos de mi oficina en casa?"</span>
+</span>}
+</code></pre>
+<p class="has-line-data" data-line-start="156" data-line-end="157">Implementación del EvaluatorAgent:</p>
+<pre><code class="has-line-data" data-line-start="159" data-line-end="197" class="language-python"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">EvaluatorAgent</span>:</span>
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">__init__</span><span class="hljs-params">(self, llm: OpenAI = OpenAI<span class="hljs-params">(temperature=<span class="hljs-number">0</span>, model=<span class="hljs-string">"gpt-4o"</span>)</span>)</span>:</span>
+        self._llm = llm
+        self._instructions = self._load_instructions()
+
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">evaluate</span><span class="hljs-params">(self, split_result: Dict)</span> -&gt; <span class="hljs-title">Dict</span>:</span>
+        evaluation_text = f<span class="hljs-string">"""
+        Mensaje Original: {split_result['original_message']}
+        Tipo de Mensaje: {split_result['message_type']}
+        Categorías y Contenidos:
+        {json.dumps(split_result['categories'], indent=2, ensure_ascii=False)}
+        """</span>
+        
+        <span class="hljs-keyword">return</span> self._process_evaluation(evaluation_text, split_result[<span class="hljs-string">'original_message'</span>])
+
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">_process_evaluation</span><span class="hljs-params">(self, evaluation_text: str, original_message: str)</span> -&gt; <span class="hljs-title">Dict</span>:</span>
+        <span class="hljs-keyword">try</span>:
+            ai_message = self._llm.chat([ChatMessage(role=<span class="hljs-string">"system"</span>, content=self._instructions),
+                                         ChatMessage(role=<span class="hljs-string">"user"</span>, content=evaluation_text)]).message
+            
+            result = json.loads(re.sub(<span class="hljs-string">r'```json\s*|\s*```'</span>, <span class="hljs-string">''</span>, ai_message.content))
+            
+            required_keys = [<span class="hljs-string">"precisión_del_tipo_de_mensaje"</span>, <span class="hljs-string">"relevancia_de_la_categoría"</span>, 
+                             <span class="hljs-string">"exhaustividad_del_contenido"</span>, <span class="hljs-string">"calidad_de_la_extracción"</span>, <span class="hljs-string">"comentario"</span>]
+            
+            <span class="hljs-keyword">for</span> key <span class="hljs-keyword">in</span> required_keys:
+                <span class="hljs-keyword">if</span> key <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> result:
+                    <span class="hljs-keyword">raise</span> ValueError(f<span class="hljs-string">"Falta la clave requerida: {key}"</span>)
+                <span class="hljs-keyword">if</span> key != <span class="hljs-string">"comentario"</span>:
+                    result[key] = float(result[key])
+            
+            result[<span class="hljs-string">"puntuación_media"</span>] = sum(result[key] <span class="hljs-keyword">for</span> key <span class="hljs-keyword">in</span> required_keys <span class="hljs-keyword">if</span> key != <span class="hljs-string">"comentario"</span>) / <span class="hljs-number">4</span>
+            result[<span class="hljs-string">"mensaje_original"</span>] = original_message
+            
+            <span class="hljs-keyword">return</span> result
+        <span class="hljs-keyword">except</span> Exception <span class="hljs-keyword">as</span> e:
+            <span class="hljs-keyword">return</span> self._generate_error_response(str(e), original_message)
+</code></pre>
+<p class="has-line-data" data-line-start="198" data-line-end="199">Este proceso de dos etapas (splitting y evaluación) permite no solo dividir los mensajes de los usuarios en temas y preguntas relevantes, sino también evaluar la calidad de estas divisiones. Esto proporciona una retroalimentación valiosa sobre el rendimiento del sistema y permite identificar áreas de mejora.</p>
+<h2 class="code-line" data-line-start=200 data-line-end=201 ><a id="Evaluacin_200"></a>Evaluación</h2>
+<p class="has-line-data" data-line-start="202" data-line-end="203">Para evaluar el sistema de manera automatizada, se ha implementado un enfoque basado en la comparación semántica en lugar de la coincidencia exacta de palabras. El EvaluatorAgent utiliza un modelo de lenguaje para evaluar la calidad de las divisiones basándose en criterios predefinidos.</p>
+<p class="has-line-data" data-line-start="204" data-line-end="205">Este enfoque tiene las siguientes ventajas:</p>
+<ol>
+<li class="has-line-data" data-line-start="206" data-line-end="207">Permite evaluar la calidad semántica de las divisiones, no solo la correspondencia léxica.</li>
+<li class="has-line-data" data-line-start="207" data-line-end="208">Es flexible ante reformulaciones o parafraseos de las preguntas originales.</li>
+<li class="has-line-data" data-line-start="208" data-line-end="210">Puede adaptarse a diferentes estilos de escritura y estructuras de mensajes.</li>
+</ol>
+<p class="has-line-data" data-line-start="210" data-line-end="211">La evaluación holística proporcionada por el EvaluatorAgent permite detectar problemas como:</p>
+<ul>
+<li class="has-line-data" data-line-start="212" data-line-end="213">Omisión de temas o preguntas importantes</li>
+<li class="has-line-data" data-line-start="213" data-line-end="214">Duplicación innecesaria de información entre categorías</li>
+<li class="has-line-data" data-line-start="214" data-line-end="215">Inconsistencias en la categorización de temas similares</li>
+<li class="has-line-data" data-line-start="215" data-line-end="217">Pérdida de contexto importante al dividir el mensaje</li>
+</ul>
+<h2 class="code-line" data-line-start=217 data-line-end=218 ><a id="Escalabilidad_y_Mejoras_217"></a>Escalabilidad y Mejoras</h2>
+<p class="has-line-data" data-line-start="219" data-line-end="220">Para escalar la solución y manejar un gran volumen de mensajes en tiempo real, se podrían considerar las siguientes estrategias:</p>
+<ol>
+<li class="has-line-data" data-line-start="221" data-line-end="222"><strong>Implementación de un sistema de colas</strong>: Utilizar tecnologías como Apache Kafka o RabbitMQ para manejar grandes volúmenes de mensajes entrantes.</li>
+<li class="has-line-data" data-line-start="222" data-line-end="223"><strong>Paralelización</strong>: Implementar procesamiento paralelo para manejar múltiples mensajes simultáneamente.</li>
+<li class="has-line-data" data-line-start="223" data-line-end="225"><strong>Caching</strong>: Implementar un sistema de caché para almacenar resultados de consultas frecuentes y reducir la carga en el modelo.</li>
+</ol>
+<p class="has-line-data" data-line-start="225" data-line-end="226">Mejoras potenciales para futuras iteraciones:</p>
+<ol>
+<li class="has-line-data" data-line-start="227" data-line-end="228"><strong>Fine-tuning específico del dominio</strong>: Entrenar el modelo con datos específicos de TaxDown para mejorar la precisión en el contexto fiscal.</li>
+<li class="has-line-data" data-line-start="228" data-line-end="229"><strong>Implementación de técnicas de few-shot learning</strong>: Incorporar ejemplos relevantes en el prompt para mejorar el rendimiento en casos específicos.</li>
+<li class="has-line-data" data-line-start="229" data-line-end="231"><strong>Integración de un sistema de retroalimentación del usuario</strong>: Permitir que los usuarios proporcionen feedback sobre la calidad de las divisiones para mejorar continuamente el sistema.</li>
+</ol>
+<h2 class="code-line" data-line-start=231 data-line-end=232 ><a id="Instrucciones_de_Ejecucin_231"></a>Instrucciones de Ejecución</h2>
+<p class="has-line-data" data-line-start="233" data-line-end="234">Para ejecutar el sistema, sigue estos pasos:</p>
+<ol>
+<li class="has-line-data" data-line-start="235" data-line-end="240">
+<p class="has-line-data" data-line-start="235" data-line-end="236">Clona el repositorio:</p>
+<pre><code class="has-line-data" data-line-start="237" data-line-end="239">git clone https://github.com/prnckjk/splitter-agent.git
+</code></pre>
+</li>
+<li class="has-line-data" data-line-start="240" data-line-end="245">
+<p class="has-line-data" data-line-start="240" data-line-end="241">Instala las dependencias:</p>
+<pre><code class="has-line-data" data-line-start="242" data-line-end="244">pip install -r requirements.txt
+</code></pre>
+</li>
+<li class="has-line-data" data-line-start="245" data-line-end="253">
+<p class="has-line-data" data-line-start="245" data-line-end="246">Configura las variables de entorno en un archivo <code>.env</code>:</p>
+<pre><code class="has-line-data" data-line-start="247" data-line-end="252">OPENAI_API_KEY=tu_clave_api_aqui
+# INPUT/OUTPUT DIRECTORIES
+INPUT_DIRECTORY=tu_ruta_entrada (Opcional)
+OUTPUT_DIRECTORY=tu_ruta_de_salida
+</code></pre>
+</li>
+<li class="has-line-data" data-line-start="253" data-line-end="258">
+<p class="has-line-data" data-line-start="253" data-line-end="254">Ejecuta el script principal:</p>
+<pre><code class="has-line-data" data-line-start="255" data-line-end="257">python src/main.py ruta/al/archivo/de/entrada.csv
+</code></pre>
+</li>
+</ol>
+<p class="has-line-data" data-line-start="258" data-line-end="259">El sistema procesará el archivo de entrada, realizará las divisiones y evaluaciones, y generará dos archivos de salida: uno con las divisiones y otro con las evaluaciones.</p>
+
+</body></html>
